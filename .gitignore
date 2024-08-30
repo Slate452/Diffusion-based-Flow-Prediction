@@ -1,3 +1,9 @@
+Test_Models/No_masking/1ca0sa_layers/
+Test_Models/No_masking/1ca1sa_layers/
+Test_Models/No_masking/2ca0sa_layers/
+Test_Models/No_masking/2ca1sa_layers/
+Test_Models/No_masking/2ca2sa_layers/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -160,4 +166,5 @@ cython_debug/
 #.idea/
 
 /datasets/1_parameter/data/
-/training/
+/training/add
+
