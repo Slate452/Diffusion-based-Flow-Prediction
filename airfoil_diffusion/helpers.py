@@ -1,5 +1,5 @@
 # helpers has been released separately as foxutils: https://github.com/qiauil/foxutils
-
+import torch
 import yaml
 import numpy as np
 from inspect import isfunction
@@ -19,6 +19,15 @@ def show_paras(model,print_result=True):
     if print_result:
         print("model has {} trainable params".format(params))
     return params
+
+def creatmask(maskin, channel, batchsize = 25):
+    channel_idx = channel
+    channel = maskin[:, channel_idx, :, :]
+    threshold = 0.5 
+    mask = (channel >= threshold).float()  
+    mask = 1.0 - mask
+    mask = mask.unsqueeze(1).expand(batchsize, 3, -1, -1)
+    return mask
 
 class GeneralDataClass():
     
