@@ -189,7 +189,7 @@ class CrossAttentionBlock(AttentionBlockBase,ConditionEmbModel):
         mask  = creatmask(condition,2)
         #print(masked_tensor)
         y = super().forward(x,condition)
-        y =  y * mask
+        #y =  y * mask
         print("Masking and Cross attention implemented")
         return y
         '''else:
