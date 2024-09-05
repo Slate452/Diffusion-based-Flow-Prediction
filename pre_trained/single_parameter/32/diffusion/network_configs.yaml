@@ -2,8 +2,7 @@ attention_layers:
 - 2
 - 3
 condition_layers:
-- 2
-- 3
+- -2
 depth_each_layer: 2
 dim_basic: 16
 dim_condition: 3
