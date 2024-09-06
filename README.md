@@ -1,12 +1,11 @@
 <h1 align="center">
     Diffusion-based-Flow-Prediction
 </h1>
-<h6 align="center">Official implementation of the AIAA Journal paper</h6>
-<h3 align="center">"Uncertainty-aware Surrogate Models for Airfoil Flow Simulations with Denoising Diffusion Probabilistic Models"</h3>
+<h6 align="center">Implementation of the AIAA Journal paper</h6>
+<h3 align="center">"Towards Higher Accuracy Diffusion Models for Predictions
+ of Airfoil Flow Under Varying Flow Regimes"</h3>
 
-<p align="center">
-  [<a href="https://arc.aiaa.org/doi/10.2514/1.J063440">AIAA Journal</a>]•[<a href="https://arxiv.org/abs/2312.05320">Arxiv</a>]•[<a href=https://github.com/tum-pbs/Diffusion-based-Flow-Prediction/blob/main/assets/ICML_Poster.pdf>ICML Workshop Poster</a>]•[Blog (coming soon)]
-</p>
+
 <img src="./assets/main.svg" style="zoom: 50%;" />
 
 This repository contains a framework for **uncertainty prediction** of Reynolds-averaged Navier-Stokes flows around airfoils using **Denoising Diffusion Probabilistic Models (DDPM)**. It features code for generating a dataset evaluating the simulation uncertainty induced by simulation parameters, and training code for diffusion models, in addition to baselines using **Bayesian neural networks (BNNs)** and **heteroscedastic uncertainty models**.
