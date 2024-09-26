@@ -15,7 +15,8 @@ This repository contains a framework for **uncertainty prediction** of Reynolds-
 
 ## Paper Info
 
-<h4 align="center">Uncertainty-aware Surrogate Models for Airfoil Flow Simulations with Denoising Diffusion Probabilistic Models</h4>
+<h4 align="center">Towards Higher Accuracy Diffusion Models for Predictions
+ of Airfoil Flow Under Varying Flow Regimes</h4>
 <h6 align="center"><a href="mailto:qiang7.liu@tum.de">Qiang Liu</a> and <a href="mailto:nils.thuerey@tum.de">Nils Thuerey</a></h6>
 
 <h6 align="center">
