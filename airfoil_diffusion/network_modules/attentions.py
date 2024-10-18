@@ -191,9 +191,9 @@ class CrossAttentionBlock(AttentionBlockBase,ConditionEmbModel):
         y = super().forward(x,condition)
         #y =  y * mask
         return y
-        '''else:
-            print("Cross attention implemented")
-            return super().forward(x,condition)'''
+        #else:
+        #   print("Cross attention implemented")
+        #    return super().forward(x,condition)'''
 
 class ChannelAttentionBlock(nn.Module):
     def __init__(self, dim: int, num_pixel: int, num_heads: int, dim_heads: int, linear_attention=False, dropout=0.0):
