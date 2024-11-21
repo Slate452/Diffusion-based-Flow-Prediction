@@ -13,9 +13,11 @@ class Diffuser():
         self.betas = torch.tensor([])
         self.beta_source = torch.tensor([])
         self.alphas = 1-self.betas
+        self.one_minus_alphas = 1 - self.alphas
         self.alphas_bar = torch.cumprod(self.alphas, 0)
         self.one_minus_alphas_bar = 1 - self.alphas_bar
         self.sqrt_alphas = torch.sqrt(self.alphas)
+        self.sqrt_one_minus_alphas = torch.sqrt(self.one_minus_alphas)
         self.sqrt_alphas_bar = torch.sqrt(self.alphas_bar)
         self.sqrt_one_minus_alphas_bar = torch.sqrt(self.one_minus_alphas_bar)
 
@@ -23,7 +25,7 @@ class Diffuser():
         xt = self.sqrt_alphas_bar[t]*x0+self.sqrt_one_minus_alphas_bar[t]*noise
         return xt
 
-    def sample_from_noise(self, model, condition,show_progress=True):
+    def sample_from_noise(self, model, condition,show_progress=True, ddim = False, stochacity=0):
         with torch.no_grad():
             x_t=torch.randn_like(condition)
             t_now = torch.tensor([self.steps], device=self.device).repeat(x_t.shape[0])
@@ -34,7 +36,11 @@ class Diffuser():
                 p_bar=range(self.steps)
             for t in p_bar:
                 predicted_noise=model(x_t,t_now,condition)
-                x_t=self.DDPM_sample_step(x_t,t_now,t_pre,predicted_noise)
+                if ddim == False:
+                    x_t=self.DDPM_sample_step(x_t,t_now,t_pre,predicted_noise)
+                else:
+                    x_0 = x_t  # to be fixed 
+                    x_t=self.DDIM_sample_step(x_t,t_now,t_pre,predicted_noise, stochacity= stochacity)
                 t_now=t_pre
                 t_pre=t_pre-1
             return x_t
@@ -43,7 +49,16 @@ class Diffuser():
         coef1 = 1/self.sqrt_alphas[t]
         coef2 = self.betas[t]/self.sqrt_one_minus_alphas_bar[t]
         sig = torch.sqrt(self.betas[t])*self.sqrt_one_minus_alphas_bar[t_pre]/self.sqrt_one_minus_alphas_bar[t]
-        return coef1*(x_t-coef2*noise)+sig*torch.randn_like(x_t)
+        return coef1*(x_t-coef2*noise)+ sig*torch.randn_like(x_t)
+    
+    def DDIM_sample_step(self, x_t,t, t_pre, noise,stochacity):
+        coef1 = self.sqrt_alphas[t_pre]
+        coef2 = self.sqrt_one_minus_alphas[t]
+        coef3 = self.sqrt_alphas[t]
+        sig = stochacity * ( torch.sqrt(self.one_minus_alphas[t_pre]/self.one_minus_alphas[t]) *  torch.sqrt(self.one_minus_alphas[t]/self.alphas[t_pre]))
+        sig_sqr = torch.square(sig)
+        coef4 = torch.sqrt((self.one_minus_alphas[t])-sig_sqr)
+        return coef1*((x_t-coef2*noise)/coef3) + (coef4*noise) + sig*torch.randn_like(x_t)
 
     def show_paras(self):
         plt.plot(self.betas[:,0,0,0].cpu(),label=r'$\beta$')
