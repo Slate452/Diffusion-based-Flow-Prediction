@@ -38,8 +38,7 @@ class Diffuser():
                 predicted_noise=model(x_t,t_now,condition)
                 if ddim == False:
                     x_t=self.DDPM_sample_step(x_t,t_now,t_pre,predicted_noise)
-                else:
-                    x_0 = x_t  # to be fixed 
+                else: 
                     x_t=self.DDIM_sample_step(x_t,t_now,t_pre,predicted_noise)
                 t_now=t_pre
                 t_pre=t_pre-1
