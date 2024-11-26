@@ -51,12 +51,12 @@ class Diffuser():
         return coef1*(x_t-coef2*noise)+ sig*torch.randn_like(x_t)
     
     def DDIM_sample_step(self, x_t,t, t_pre, noise,stochacity):
-        coef1 = self.sqrt_alphas[t_pre]
-        coef2 = self.sqrt_one_minus_alphas[t]
-        coef3 = self.sqrt_alphas[t]
-        sig = stochacity * ( torch.sqrt(self.one_minus_alphas_bar[t_pre]/self.one_minus_alphas_bar[t]) *  torch.sqrt(self.one_minus_alphas_bar[t]/self.alphas_bar[t_pre]))
+        coef1 = self.sqrt_alphas_bar[t_pre]
+        coef2 = self.sqrt_one_minus_alphas_bar[t]
+        coef3 = self.sqrt_alphas_bar[t]
+        sig = stochacity * ( torch.sqrt(self.one_minus_alphas[t_pre]/self.one_minus_alphas[t]) *  torch.sqrt(self.one_minus_alphas[t]/self.alphas[t_pre]))
         sig_sqr = torch.square(sig)
-        coef4 = torch.sqrt((self.one_minus_alphas[t])-sig_sqr)
+        coef4 = torch.sqrt((self.one_minus_alphas_bar[t])-sig_sqr)
         return coef1*((x_t-coef2*noise)/coef3) + (coef4*noise) + sig*torch.randn_like(x_t)
 
     def show_paras(self):
