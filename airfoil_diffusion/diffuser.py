@@ -25,15 +25,22 @@ class Diffuser():
         xt = self.sqrt_alphas_bar[t]*x0+self.sqrt_one_minus_alphas_bar[t]*noise
         return xt
 
-    def sample_from_noise(self, model, condition,show_progress=True, ddim = False,stoc = 0):
+    def sample_from_noise(self, model, condition,show_progress=True, ddim = False):
         with torch.no_grad():
             x_t=torch.randn_like(condition)
             t_now = torch.tensor([self.steps], device=self.device).repeat(x_t.shape[0])
             t_pre = t_now-1
+
+            if ddim == True:
+                 #accelrated sampling quadratic 
+                 self.steps = ((np.linspace(0, np.sqrt(self.steps * .8), self.steps)) ** 2).astype(int) + 1
+
             if show_progress:
                 p_bar=tqdm(range(self.steps))
             else:
                 p_bar=range(self.steps)
+
+        with torch.no_grad():
             for t in p_bar:
                 predicted_noise=model(x_t,t_now,condition)
                 if ddim == False:
@@ -124,3 +131,4 @@ class Cos2ParamsDiffuser(Diffuser):
         self.beta_source = 1-(temp1/temp2)
         self.beta_source[self.beta_source > 0.999] = 0.999
         self.generate_parameters_from_beta()
+
