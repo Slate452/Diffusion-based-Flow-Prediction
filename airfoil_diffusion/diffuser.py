@@ -46,7 +46,7 @@ class Diffuser():
                 if ddim == False:
                     x_t=self.DDPM_sample_step(x_t,t_now,t_pre,predicted_noise)
                 else: 
-                    x_t=self.DDIM_sample_step(x_t,t_now,t_pre,predicted_noise,stochacity= stoc)
+                    x_t=self.DDIM_sample_step(x_t,t_now,t_pre,predicted_noise)
                 t_now=t_pre
                 t_pre=t_pre-1
             return x_t
@@ -57,7 +57,7 @@ class Diffuser():
         sig = torch.sqrt(self.betas[t])*self.sqrt_one_minus_alphas_bar[t_pre]/self.sqrt_one_minus_alphas_bar[t]
         return coef1*(x_t-coef2*noise)+ sig*torch.randn_like(x_t)
     
-    def DDIM_sample_step(self, x_t,t, t_pre, noise,stochacity):
+    def DDIM_sample_step(self, x_t,t, t_pre, noise):
         coef1 = self.sqrt_alphas_bar[t_pre]
         coef2 = self.sqrt_one_minus_alphas_bar[t]
         coef3 = self.sqrt_alphas_bar[t]
