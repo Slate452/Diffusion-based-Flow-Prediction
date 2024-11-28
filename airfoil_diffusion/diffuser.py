@@ -31,9 +31,9 @@ class Diffuser():
             t_now = torch.tensor([self.steps], device=self.device).repeat(x_t.shape[0])
             t_pre = t_now-1
 
-            if ddim == True:
-                 #accelrated sampling quadratic 
-                 self.steps = ((np.linspace(0, np.sqrt(self.steps * .8), self.steps)) ** 2).astype(int) + 1
+            #if ddim == True:
+            #     #accelrated sampling quadratic 
+            #     self.steps = ((np.linspace(0, np.sqrt(self.steps * .8), self.steps)) ** 2).astype(int) + 1
 
             if show_progress:
                 p_bar=tqdm(range(self.steps))
