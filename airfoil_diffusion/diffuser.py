@@ -56,7 +56,7 @@ class Diffuser():
         coef3 = self.sqrt_alphas_bar[t]
         #sig = stochacity * ( torch.sqrt(self.one_minus_alphas[t_pre]/self.one_minus_alphas[t]) *  torch.sqrt(self.one_minus_alphas[t]/self.alphas[t_pre]))
         #sig_sqr = torch.square(sig)
-        coef4 = torch.sqrt(self.sqrt_one_minus_alphas_bar[t])#+sig_sqr)
+        coef4 = self.sqrt_one_minus_alphas_bar[t]#+sig_sqr)
         return coef1*((x_t-coef2*noise)/coef3) + (coef4*noise) #+ sig*torch.randn_like(x_t)
 
     def show_paras(self):
