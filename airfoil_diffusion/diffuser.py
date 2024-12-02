@@ -1,5 +1,5 @@
 #usr/bin/python3
-
+from torch.functional import F
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
@@ -13,11 +13,8 @@ class Diffuser():
         self.betas = torch.tensor([])
         self.beta_source = torch.tensor([])
         self.alphas = 1-self.betas
-        self.one_minus_alphas = 1 - self.alphas
         self.alphas_bar = torch.cumprod(self.alphas, 0)
         self.one_minus_alphas_bar = 1 - self.alphas_bar
-        self.sqrt_alphas = torch.sqrt(self.alphas)
-        self.sqrt_one_minus_alphas = torch.sqrt(self.one_minus_alphas)
         self.sqrt_alphas_bar = torch.sqrt(self.alphas_bar)
         self.sqrt_one_minus_alphas_bar = torch.sqrt(self.one_minus_alphas_bar)
 
@@ -44,11 +41,18 @@ class Diffuser():
             for t in p_bar:
                 predicted_noise=model(x_t,t_now,condition)
                 if ddim == False:
-                    x_t=self.DDPM_sample_step(x_t,t_now,t_pre,predicted_noise)
+                    x_t,x_0=self.DDIM_sample_step(x_t,t_now,t_pre,predicted_noise)  
+                    #hOW DO WE MODIFY t?
+                    t_now=t_pre
+                    t_pre=t_pre-1
+                #    if t == p_bar[-1]:
+                #        x_t = x_0
+                #        x_0 = ((x_0.clamp(-1, 1) + 1) * 127.5).type(torch.uint8)
+                #        x_0 = F.interpolate(input=x_0, scale_factor=2, mode='nearest-exact')
                 else: 
-                    x_t=self.DDIM_sample_step(x_t,t_now,t_pre,predicted_noise)
-                t_now=t_pre
-                t_pre=t_pre-1
+                    x_t=self.DDPM_sample_step(x_t,t_now,t_pre,predicted_noise)
+                    t_now=t_pre
+                    t_pre=t_pre-1
             return x_t
 
     def DDPM_sample_step(self, x_t, t, t_pre, noise):
@@ -63,9 +67,12 @@ class Diffuser():
         coef3 = self.sqrt_alphas_bar[t]
         #sig = stochacity * ( torch.sqrt(self.one_minus_alphas[t_pre]/self.one_minus_alphas[t]) *  torch.sqrt(self.one_minus_alphas[t]/self.alphas[t_pre]))
         #sig_sqr = torch.square(sig)
-        coef4 = self.sqrt_one_minus_alphas_bar[t]#+sig_sqr)
-        return coef1*((x_t-coef2*noise)/coef3) + (coef4*noise) #+ sig*torch.randn_like(x_t)
-
+        coef4 = self.sqrt_one_minus_alphas_bar[t_pre] #+sig_sqr)
+        x_0_pred = (x_t-(coef2*noise))/coef3
+        x_t_dir = (coef4*noise)
+        x_t_pre = coef1*x_0_pred + x_t_dir  #+ sig*torch.randn_like(x_t)
+        return  x_t_pre, x_0_pred
+    
     def show_paras(self):
         plt.plot(self.betas[:,0,0,0].cpu(),label=r'$\beta$')
         plt.plot(self.alphas_bar[:,0,0,0].cpu(),label=r'$\bar{\alpha}$')
@@ -79,8 +86,8 @@ class Diffuser():
 
     def generate_parameters_from_beta(self):
         self._generate_parameters_from_beta()
-        #print('The sqrt_alphas_bar at the last step is {} , be careful if this value is not close to 0!'.format(
-        #    self.sqrt_alphas_bar[-1].item()))
+        print('The sqrt_alphas_bar at the last step is {} , be careful if this value is not close to 0!'.format(
+            self.sqrt_alphas_bar[-1].item()))
 
     def _generate_parameters_from_beta(self):
         self.betas = torch.cat(
@@ -90,11 +97,8 @@ class Diffuser():
         self.alphas = 1-self.betas
         self.alphas_bar = torch.cumprod(self.alphas, 0)
         self.one_minus_alphas_bar = 1 - self.alphas_bar
-        self.sqrt_alphas = torch.sqrt(self.alphas)
         self.sqrt_alphas_bar = torch.sqrt(self.alphas_bar)
         self.sqrt_one_minus_alphas_bar = torch.sqrt(self.one_minus_alphas_bar)
-        self.one_minus_alphas = 1 - self.alphas
-        self.sqrt_one_minus_alphas = torch.sqrt(self.one_minus_alphas)
         
 
 
