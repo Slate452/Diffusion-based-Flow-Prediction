@@ -56,7 +56,7 @@ class Diffuser():
             return x_t
 
     def DDPM_sample_step(self, x_t, t, t_pre, noise):
-        coef1 = 1/self.sqrt_alphas[t]
+        coef1 = 1/self.sqrt_alphas_bar[t]
         coef2 = self.betas[t]/self.sqrt_one_minus_alphas_bar[t]
         sig = torch.sqrt(self.betas[t])*self.sqrt_one_minus_alphas_bar[t_pre]/self.sqrt_one_minus_alphas_bar[t]
         return coef1*(x_t-coef2*noise)+ sig*torch.randn_like(x_t)
