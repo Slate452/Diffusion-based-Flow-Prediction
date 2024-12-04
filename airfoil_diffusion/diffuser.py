@@ -23,7 +23,7 @@ class Diffuser():
         xt = self.sqrt_alphas_bar[t]*x0+self.sqrt_one_minus_alphas_bar[t]*noise
         return xt
 
-    def sample_from_noise(self, model, condition,show_progress=True):
+    def sample_from_noise(self, model, condition,show_progress=True,ddim = False):
         with torch.no_grad():
             x_t=torch.randn_like(condition)
             t_now = torch.tensor([self.steps], device=self.device).repeat(x_t.shape[0])
@@ -34,7 +34,15 @@ class Diffuser():
                 p_bar=range(self.steps)
             for t in p_bar:
                 predicted_noise=model(x_t,t_now,condition)
-                x_t=self.DDPM_sample_step(x_t,t_now,t_pre,predicted_noise)
+                
+                #Optional Sampling steps 
+                if ddim == True:
+                    x_t,x_0=self.DDIM_sample_step(x_t,t_now,t_pre,predicted_noise)  
+                    if t == pbar[-1]:
+                        x_t = x_0
+                else:
+                    x_t=self.DDPM_sample_step(x_t,t_now,t_pre,predicted_noise)
+                
                 t_now=t_pre
                 t_pre=t_pre-1
             return x_t
@@ -44,6 +52,18 @@ class Diffuser():
         coef2 = self.betas[t]/self.sqrt_one_minus_alphas_bar[t]
         sig = torch.sqrt(self.betas[t])*self.sqrt_one_minus_alphas_bar[t_pre]/self.sqrt_one_minus_alphas_bar[t]
         return coef1*(x_t-coef2*noise)+sig*torch.randn_like(x_t)
+
+    def DDIM_sample_step(self, x_t,t, t_pre, noise):
+        coef1 = self.sqrt_alphas_bar[t_pre]
+        coef2 = self.sqrt_one_minus_alphas_bar[t]
+        coef3 = self.sqrt_alphas_bar[t]
+        #sig = stochacity * ( torch.sqrt(self.one_minus_alphas[t_pre]/self.one_minus_alphas[t]) *  torch.sqrt(self.one_minus_alphas[t]/self.alphas[t_pre]))
+        #sig_sqr = torch.square(sig)
+        coef4 = self.sqrt_one_minus_alphas_bar[t_pre] #+sig_sqr)
+        x_0_pred = (x_t-(coef2*noise))/coef3
+        x_t_dir = (coef4*noise)
+        x_t_pre = coef1*x_0_pred + x_t_dir  #+ sig*torch.randn_like(x_t)
+        return  x_t_pre, x_0_pred
 
     def show_paras(self):
         plt.plot(self.betas[:,0,0,0].cpu(),label=r'$\beta$')
