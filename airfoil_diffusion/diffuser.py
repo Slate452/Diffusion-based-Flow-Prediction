@@ -1,5 +1,5 @@
 #usr/bin/python3
-from torch.functional import F
+
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
@@ -15,6 +15,7 @@ class Diffuser():
         self.alphas = 1-self.betas
         self.alphas_bar = torch.cumprod(self.alphas, 0)
         self.one_minus_alphas_bar = 1 - self.alphas_bar
+        self.sqrt_alphas = torch.sqrt(self.alphas)
         self.sqrt_alphas_bar = torch.sqrt(self.alphas_bar)
         self.sqrt_one_minus_alphas_bar = torch.sqrt(self.one_minus_alphas_bar)
 
@@ -22,57 +23,28 @@ class Diffuser():
         xt = self.sqrt_alphas_bar[t]*x0+self.sqrt_one_minus_alphas_bar[t]*noise
         return xt
 
-    def sample_from_noise(self, model, condition,show_progress=True, ddim = False):
+    def sample_from_noise(self, model, condition,show_progress=True):
         with torch.no_grad():
             x_t=torch.randn_like(condition)
             t_now = torch.tensor([self.steps], device=self.device).repeat(x_t.shape[0])
             t_pre = t_now-1
-
-            #if ddim == True:
-            #     #accelrated sampling quadratic 
-            #     self.steps = ((np.linspace(0, np.sqrt(self.steps * .8), self.steps)) ** 2).astype(int) + 1
-
             if show_progress:
                 p_bar=tqdm(range(self.steps))
             else:
                 p_bar=range(self.steps)
-
-        with torch.no_grad():
             for t in p_bar:
                 predicted_noise=model(x_t,t_now,condition)
-                if ddim == False:
-                    x_t,x_0=self.DDIM_sample_step(x_t,t_now,t_pre,predicted_noise)  
-                    #hOW DO WE MODIFY t?
-                    t_now=t_pre
-                    t_pre=t_pre-1
-                #    if t == p_bar[-1]:
-                #        x_t = x_0
-                #        x_0 = ((x_0.clamp(-1, 1) + 1) * 127.5).type(torch.uint8)
-                #        x_0 = F.interpolate(input=x_0, scale_factor=2, mode='nearest-exact')
-                else: 
-                    x_t=self.DDPM_sample_step(x_t,t_now,t_pre,predicted_noise)
-                    t_now=t_pre
-                    t_pre=t_pre-1
+                x_t=self.DDPM_sample_step(x_t,t_now,t_pre,predicted_noise)
+                t_now=t_pre
+                t_pre=t_pre-1
             return x_t
 
     def DDPM_sample_step(self, x_t, t, t_pre, noise):
-        coef1 = 1/self.sqrt_alphas_bar[t]
+        coef1 = 1/self.sqrt_alphas[t]
         coef2 = self.betas[t]/self.sqrt_one_minus_alphas_bar[t]
         sig = torch.sqrt(self.betas[t])*self.sqrt_one_minus_alphas_bar[t_pre]/self.sqrt_one_minus_alphas_bar[t]
-        return coef1*(x_t-coef2*noise)+ sig*torch.randn_like(x_t)
-    
-    def DDIM_sample_step(self, x_t,t, t_pre, noise):
-        coef1 = self.sqrt_alphas_bar[t_pre]
-        coef2 = self.sqrt_one_minus_alphas_bar[t]
-        coef3 = self.sqrt_alphas_bar[t]
-        #sig = stochacity * ( torch.sqrt(self.one_minus_alphas[t_pre]/self.one_minus_alphas[t]) *  torch.sqrt(self.one_minus_alphas[t]/self.alphas[t_pre]))
-        #sig_sqr = torch.square(sig)
-        coef4 = self.sqrt_one_minus_alphas_bar[t_pre] #+sig_sqr)
-        x_0_pred = (x_t-(coef2*noise))/coef3
-        x_t_dir = (coef4*noise)
-        x_t_pre = coef1*x_0_pred + x_t_dir  #+ sig*torch.randn_like(x_t)
-        return  x_t_pre, x_0_pred
-    
+        return coef1*(x_t-coef2*noise)+sig*torch.randn_like(x_t)
+
     def show_paras(self):
         plt.plot(self.betas[:,0,0,0].cpu(),label=r'$\beta$')
         plt.plot(self.alphas_bar[:,0,0,0].cpu(),label=r'$\bar{\alpha}$')
@@ -86,20 +58,21 @@ class Diffuser():
 
     def generate_parameters_from_beta(self):
         self._generate_parameters_from_beta()
-        print('The sqrt_alphas_bar at the last step is {} , be careful if this value is not close to 0!'.format(
-            self.sqrt_alphas_bar[-1].item()))
+        #print('The sqrt_alphas_bar at the last step is {} , be careful if this value is not close to 0!'.format(
+        #    self.sqrt_alphas_bar[-1].item()))
 
     def _generate_parameters_from_beta(self):
         self.betas = torch.cat(
             (torch.tensor([0]), self.beta_source), dim=0)  # 第一项必须是0
         self.betas = self.betas.view(self.steps+1, 1, 1, 1)
         self.betas = self.betas.to(self.device)
+
         self.alphas = 1-self.betas
         self.alphas_bar = torch.cumprod(self.alphas, 0)
         self.one_minus_alphas_bar = 1 - self.alphas_bar
+        self.sqrt_alphas = torch.sqrt(self.alphas)
         self.sqrt_alphas_bar = torch.sqrt(self.alphas_bar)
         self.sqrt_one_minus_alphas_bar = torch.sqrt(self.one_minus_alphas_bar)
-        
 
 
 class LinearParamsDiffuser(Diffuser):
@@ -135,4 +108,3 @@ class Cos2ParamsDiffuser(Diffuser):
         self.beta_source = 1-(temp1/temp2)
         self.beta_source[self.beta_source > 0.999] = 0.999
         self.generate_parameters_from_beta()
-
