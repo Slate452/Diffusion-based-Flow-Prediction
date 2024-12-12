@@ -40,7 +40,8 @@ class DiffusionTrainer(TrainerStepLr):
     
     def event_before_training(self,network):
         # you can also use other diffuser, such as linear diffuser and sigmoid diffuser.
-        self.diffuser = Cos2ParamsDiffuser(steps=self.configs.diffusion_step,device=self.configs.device)
+        #self.diffuser = Cos2ParamsDiffuser(steps=self.configs.diffusion_step,device=self.configs.device)
+        self.diffuser = LinearParamsDiffuser(steps=self.configs.diffusion_step,device=self.configs.device,beta_min=0.000254 ,beta_max =0.9990000128746033)
         
     def train_step(self, network: torch.nn.Module, batched_data, idx_batch: int, num_batches: int, idx_epoch: int, num_epoch: int):
         condition = batched_data[0].to(device=self.configs.device)
