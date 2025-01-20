@@ -44,7 +44,7 @@ class Diffuser():
                 
                 if ddim:
                     x_t, x_0 = self.DDIM_sample_step(x_t, t_now, t_pre, predicted_noise)
-                    if t + skip_steps >= self.steps:  # Handle final step for DDIM
+                    if t + skip_steps == self.steps:  # Handle final step for DDIM
                         x_t = x_0
                 else:
                     x_t = self.DDPM_sample_step(x_t, t_now, t_pre, predicted_noise)
