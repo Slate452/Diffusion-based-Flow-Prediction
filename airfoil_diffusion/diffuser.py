@@ -22,8 +22,7 @@ class Diffuser():
     def forward_diffusion(self, x0, t, noise):
         xt = self.sqrt_alphas_bar[t]*x0+self.sqrt_one_minus_alphas_bar[t]*noise
         return xt
-    def sample_from_noise(self, model, condition, show_progress=True, ddim=False, skip_steps= 5):
-
+    def sample_from_noise(self, model, condition, show_progress=True, ddim=False, skip_steps= 1):
         with torch.no_grad():
             x_t = torch.randn_like(condition)
             t_now = torch.tensor([self.steps], device=self.device).repeat(x_t.shape[0])
@@ -50,13 +49,6 @@ class Diffuser():
 
                     if t == p_bar[-1]:
                         x_t = x_0
-                        for i in range(skip_steps-2):
-                            predicted_noise = model(x_t, t_now, condition)
-                            x_t = self.DDPM_sample_step(x_t, t_now, t_pre, predicted_noise)
-                            t_now = t_pre
-                            t_pre = t_pre - 1
-
-                        
     
                 else:
                     x_t = self.DDPM_sample_step(x_t, t_now, t_pre, predicted_noise)
@@ -66,6 +58,30 @@ class Diffuser():
             
             return x_t
 
+    # def sample_from_noise(self, model, condition,show_progress=True,ddim = False):
+    #     with torch.no_grad():
+    #         x_t=torch.randn_like(condition)
+    #         t_now = torch.tensor([self.steps], device=self.device).repeat(x_t.shape[0])
+    #         t_pre = t_now-1
+    #         if show_progress:
+    #             p_bar=tqdm(range(self.steps))
+    #         else:
+    #             p_bar=range(self.steps)
+    #         for t in p_bar:
+    #             predicted_noise=model(x_t,t_now,condition)
+                
+    #             #Optional Sampling steps 
+    #             if ddim == True:
+    #                 x_t,x_0=self.DDIM_sample_step(x_t,t_now,t_pre,predicted_noise)  
+    #                 if t == p_bar[-1]:
+    #                     x_t = x_0
+                        
+    #             else:
+    #                 x_t=self.DDPM_sample_step(x_t,t_now,t_pre,predicted_noise)
+                
+    #             t_now=t_pre
+    #             t_pre=t_pre-1
+    #         return x_t
 
     def DDPM_sample_step(self, x_t, t, t_pre, noise):
         coef1 = 1/self.sqrt_alphas[t]
