@@ -23,7 +23,8 @@ class Diffuser():
         xt = self.sqrt_alphas_bar[t]*x0+self.sqrt_one_minus_alphas_bar[t]*noise
         return xt
     def sample_from_noise(self, model, condition, show_progress=True, ddim=False, traj_steps= 200):
-        skip_steps= self.steps/traj_steps
+        skip_steps= int(self.steps/traj_steps)
+
         with torch.no_grad():
             x_t = torch.randn_like(condition)
             t_now = torch.tensor([self.steps], device=self.device).repeat(x_t.shape[0])
