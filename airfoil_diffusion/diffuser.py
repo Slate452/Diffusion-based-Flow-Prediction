@@ -22,8 +22,7 @@ class Diffuser():
     def forward_diffusion(self, x0, t, noise):
         xt = self.sqrt_alphas_bar[t]*x0+self.sqrt_one_minus_alphas_bar[t]*noise
         return xt
-    def sample_from_noise(self, model, condition, show_progress=True, ddim=False, traj_steps= 200):
-        skip_steps= int(self.steps/traj_steps)
+    def sample_from_noise(self, model, condition, show_progress=True, ddim=False, skip_steps= 5):
 
         with torch.no_grad():
             x_t = torch.randn_like(condition)
@@ -51,7 +50,7 @@ class Diffuser():
 
                     if t == p_bar[-1]:
                         x_t = x_0
-                        for i in range(skip_steps-1):
+                        for i in range(skip_steps-2):
                             predicted_noise = model(x_t, t_now, condition)
                             x_t = self.DDPM_sample_step(x_t, t_now, t_pre, predicted_noise)
                             t_now = t_pre
