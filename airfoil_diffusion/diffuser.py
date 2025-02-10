@@ -51,7 +51,8 @@ class Diffuser():
 
                     if t == p_bar[-1]:
                         x_t = x_0
-                        for i in range(skips_steps-1):
+                        for i in range(skip_steps-1):
+                            predicted_noise = model(x_t, t_now, condition)
                             x_t = self.DDPM_sample_step(x_t, t_now, t_pre, predicted_noise)
                             t_now = t_pre
                             t_pre = t_pre - 1
