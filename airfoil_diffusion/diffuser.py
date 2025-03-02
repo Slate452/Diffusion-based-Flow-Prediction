@@ -1,3 +1,4 @@
+
 #usr/bin/python3
 
 import torch
@@ -22,7 +23,7 @@ class Diffuser():
     def forward_diffusion(self, x0, t, noise):
         xt = self.sqrt_alphas_bar[t]*x0+self.sqrt_one_minus_alphas_bar[t]*noise
         return xt
-    def sample_from_noise(self, model, condition, show_progress=True, ddim=False, skip_steps= 1, use_sub = False):
+    def sample_from_noise(self, model, condition, show_progress=True, ddim=False, skip_steps= 2):
         with torch.no_grad():
             x_t = torch.randn_like(condition)
             t_now = torch.tensor([self.steps], device=self.device).repeat(x_t.shape[0])
@@ -36,7 +37,6 @@ class Diffuser():
             else:
                 if ddim:
                     p_bar = range(0, self.steps, skip_steps)
-                    sub_p_bar = range(skip_steps-1)
                 else:
                     p_bar = range(self.steps)
             
@@ -50,15 +50,6 @@ class Diffuser():
 
                     if t == p_bar[-1]:
                         x_t = x_0
-                        if use_sub == True:
-                            for nt in sub_p_bar:
-                                predicted_noise = model(x_t, t_now, condition)
-                                x_t = self.DDPM_sample_step(x_t, t_now, t_pre, predicted_noise)
-                                t_now = t_pre
-                                t_pre = t_pre - 1
-                        return x_t
-
-
     
                 else:
                     x_t = self.DDPM_sample_step(x_t, t_now, t_pre, predicted_noise)
